@@ -1,0 +1,16 @@
+.\obj\main.o: src\main.c
+.\obj\main.o: C:\Keil_v5\ARM\Inc\Freescale\Kinetis\MKL25Z4.H
+.\obj\main.o: C:\Keil_v5\ARM\CMSIS\Include\core_cm0plus.h
+.\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\obj\main.o: C:\Keil_v5\ARM\CMSIS\Include\core_cmInstr.h
+.\obj\main.o: C:\Keil_v5\ARM\CMSIS\Include\core_cmFunc.h
+.\obj\main.o: C:\Keil_v5\ARM\Inc\Freescale\Kinetis\system_MKL25Z4.h
+.\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\main.o: .\inc\gpio_defs.h
+.\obj\main.o: .\inc\LEDs.h
+.\obj\main.o: .\inc\timers.h
+.\obj\main.o: .\inc\delay.h
+.\obj\main.o: .\inc\ADC.h
+.\obj\main.o: .\inc\config.h
+.\obj\main.o: .\inc\mma8451.h
+.\obj\main.o: .\inc\i2c.h
