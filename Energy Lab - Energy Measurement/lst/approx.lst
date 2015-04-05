@@ -1,0 +1,163 @@
+L 1 "src\approx.c"
+N#include "approx.h"
+L 1 ".\inc\approx.h" 1
+N#ifndef APPROX_H
+N#define APPROX_H
+N
+Nfloat approx_sqrtf(float z);
+Nfloat approx_atan2f(float y, float x);
+Nfloat approx_rsqrt(float x0);
+N
+N#endif // APPROX_H
+L 2 "src\approx.c" 2
+N#include "my_math.h"
+L 1 ".\inc\my_math.h" 1
+N#ifndef MY_MATH_H
+N#define MY_MATH_H
+N
+N#define M_PI 3.14159265
+N#define PI_OVER_180 (3.1415927/180.0)
+N#define M_PI_2 (M_PI/2.0)
+N#define M_PI_4 (M_PI/4.0)
+N
+N#endif // MY_MATH_H
+L 3 "src\approx.c" 2
+N
+N#if 0 // used for atan2 test function
+Svolatile float acc, app, error;
+Svolatile float x, y;
+N#endif
+N
+Nfloat approx_sqrtf(float z) { // from Wikipedia
+N	int val_int = *(int*)&z; /* Same bits, but as an int */
+N	const int a = 0x4c000;
+N
+N  val_int -= 1 << 23; /* Subtract 2^m. */
+N  val_int >>= 1; /* Divide by 2. */
+N  val_int += 1 << 29; /* Add ((b + 1) / 2) * 2^m. */
+N	val_int += a;
+N
+N	//	val_int = (1 << 29) + (val_int >> 1) - (1 << 22) + a;
+N
+N	return *(float*)&val_int; /* Interpret again as float */
+N}
+N
+N
+N/* ----------------------------- rsqrt ------------------------------ */
+N
+N/* This is a novel and fast routine for the reciprocal square root of an
+NIEEE float (single precision). It was communicated to me by Mike Morton,
+Nand has been analyzed substantially by Chris Lomont. Later (12/1/06)
+NPeter Capek pointed it out to me. See:
+N
+Nhttp://www.lomont.org/Math/Papers/2003/InvSqrt.pdf
+Nhttp://playstation2-linux.com/download/p2lsd/fastrsqrt.pdf
+Nhttp://www.beyond3d.com/content/articles/8/
+N
+NThe author of this has been researched but seems to be lost in history.
+NHowever, Gary Tarolli worked on it and helped to make it more widely
+Nknown, probably while he was at SGI. Gary says it goes back to 1995 or
+Nearlier. */
+N
+N//	from http://www.hackersdelight.org/hdcodetxt/rsqrt.c.txt
+N
+Nunion INF_U {int ix; float x;};
+N
+Nfloat approx_rsqrt(float x0) {
+N  union INF_U inf;
+N	float xhalf;
+N// union {int ihalf; float xhalf;}; // For alternative halving step.
+N
+N   inf.x = x0;                      // x can be viewed as int.
+N// ihalf = ix - 0x00800000;     // Alternative to line below, for x not a denorm.
+N   xhalf = 0.5f*inf.x;
+N// ix = 0x5f3759df - (ix >> 1); // Initial guess (traditional),
+N//                                 but slightly better:
+N   inf.ix = 0x5f375a82 - (inf.ix >> 1); // Initial guess.
+N   inf.x = inf.x*(1.5f - xhalf*inf.x*inf.x);    // Newton step.
+N// x = x*(1.5008908 - xhalf*x*x);  // Newton step for a balanced error.
+N   return inf.x;
+N}
+N
+N/* Notes: For more accuracy, repeat the Newton step (just duplicate the
+Nline). The routine always gets the result too low. According to Chris
+NLomont, the relative error is at most -0.00175228 (I get -0.00175204).
+NTherefore, to cut its relative error in half, making it approximately
+Nplus or minus 0.000876, change the 1.5f in the Newton step to 1.500876f
+N(1.5008908 works best for me, rel err is +-0.0008911).
+N   Chris says that changing the hex constant to 0x5f375a86 reduces the
+Nmaximum relative error slightly, to 0.00175124. (I get 0.00175128. But
+Nthe best I can do is use 5f375a82, which gives rel err = 0 to
+N-0.00175123). However, using that value seems to usually give a slightly
+Nlarger relative error, according to Chris.
+N*/
+N
+N	
+Nfloat approx_atan2f(float y, float x) {
+N	float a, abs_a, approx, adj=0.0;
+N	char negate = 0;
+N	
+N	if (x == 0) { // special cases
+N		if (y == 0.0)
+N			return 0.0; // undefined, but return 0 by convention
+N		else if (y < 0.0)
+N			return -M_PI_2;
+X			return -(3.14159265/2.0);
+N		else
+N			return M_PI_2;
+X			return (3.14159265/2.0);
+N	}	else {
+N		a = y/x; // Can we get rid of this occasionally extra fdiv?
+N		if (a>1) {
+N			a = x/y;
+N			adj = M_PI_2;
+X			adj = (3.14159265/2.0);
+N			negate = 1;
+N		} else if (a<-1) {
+N			a = x/y;
+N			adj = -M_PI_2;
+X			adj = -(3.14159265/2.0);
+N			negate = 1;
+N		}
+N		
+N		abs_a = (a < 0)? -a : a;
+N		approx = M_PI_4*a - a*(abs_a - 1)*(0.2447+0.0663*abs_a);
+X		approx = (3.14159265/4.0)*a - a*(abs_a - 1)*(0.2447+0.0663*abs_a);
+N		if (negate) {
+N			approx = adj - approx;
+N		}
+N		
+N		if (x > 0)
+N			return approx;
+N		else if (y >= 0)
+N			return approx + M_PI;
+X			return approx + 3.14159265;
+N		else
+N			return approx - M_PI;
+X			return approx - 3.14159265;
+N	}		
+N	
+N}
+N
+N#define TESTS (100.0)
+N
+N#if 0
+Svoid test_atan2_approx(void){
+S	int nx, ny;
+S	
+S	for (nx=0; nx<2*TESTS; nx++) {
+S		x = (nx-TESTS)/TESTS;
+S		for (ny=0; ny<2*TESTS; ny++) {
+S			y = (ny-TESTS)/TESTS;
+S			acc = atan2f(y,x);
+S			app = approx_atan2f(y,x);
+S			if (acc != 0) {
+S				error = fabs((acc-app)/acc);
+S				Control_RGB_LEDs(error>0.02, error < 0.05, 0);
+S				if (error > 0.02)
+S					error += 0.01;
+S			}
+S		}
+S	}
+S}
+N#endif

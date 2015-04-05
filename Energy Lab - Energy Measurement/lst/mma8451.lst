@@ -8816,6 +8816,17 @@ N#endif /* __math_h */
 N
 N/* end of math.h */
 L 6 "src\mma8451.c" 2
+N#include "approx.h"
+L 1 ".\inc\approx.h" 1
+N#ifndef APPROX_H
+N#define APPROX_H
+N
+Nfloat approx_sqrtf(float z);
+Nfloat approx_atan2f(float y, float x);
+Nfloat approx_rsqrt(float x0);
+N
+N#endif // APPROX_H
+L 7 "src\mma8451.c" 2
 N
 Nint16_t acc_X=0, acc_Y=0, acc_Z=0;
 Nfloat roll=0.0, pitch=0.0, roll_rads = 0.0, pitch_rads = 0.0;
@@ -8919,6 +8930,7 @@ N
 N	pitch_rads = asinf(ax);
 N	//arm_mult_f32(&pitch_rads,&d180_over_pi,&pitch,1);
 N	//pitch = pitch_rads*D180_OVER_PI;
+N	//roll_rads = approx_atan2f(ay, az);
 N	roll_rads = atan2f(ay, az);
 N	//arm_mult_f32(&roll_rads,&d180_over_pi,&roll,1);
 N	//roll = roll_rads*D180_OVER_PI;	
